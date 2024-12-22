@@ -6,55 +6,24 @@ float PI = 3.146;
 float rotation = 0.0;
 float aspect;
 
-// Radius tiap planet
-float radiusMatahari = 8.0;	 // Ukuran Matahari
-float radiusMerkurius = 0.5; // Ukuran Merkurius
-float radiusVenus = 0.8;		 // Ukuran Venus
-float radiusBumi = 0.9;			 // Ukuran Bumi
-float radiusMars = 0.47;		 // Ukuran Mars
-float radiusJupiter = 2.3;	 // Ukuran Jupiter
-float radiusSaturnus = 2.1;	 // Ukuran Saturnus
-float radiusUranus = 1.3;		 // Ukuran Uranus
-float radiusNeptunus = 1.3;	 // Ukuran Neptunus
+struct Planet
+{
+	float radius;
+	float jarak;
+	float rotationAngle;
+	float kecepatanRotasi;
+	float color[3];
+};
 
-// Jarak tiap planet dari matahari
-float jarakPlanetMerkurius = 10.0;
-float jarakPlanetVenus = 15.0;
-float jarakPlanetBumi = 25.0;
-float jarakPlanetMars = 30.0;
-float jarakPlanetJupiter = 40.0;
-float jarakPlanetSaturnus = 50.0;
-float jarakPlanetUranus = 60.0;
-float jarakPlanetNeptunus = 70.0;
+struct Planet merkurius = {0.5, 10.0, 0.0, 0.002, {0.6f, 0.6f, 0.6f}};
+struct Planet venus = {0.8, 15.0, 0.0, 0.001, {0.8f, 0.6f, 0.2f}};
+struct Planet bumi = {0.9, 25.0, 0.0, 0.0005, {0.2f, 0.6f, 1.0f}};
+struct Planet mars = {0.47, 30.0, 0.0, 0.0004, {1.0f, 0.0f, 0.0f}};
+struct Planet jupiter = {2.3, 40.0, 0.0, 0.0003, {1.0f, 1.0f, 0.0f}};
+struct Planet saturnus = {2.1, 50.0, 0.0, 0.0002, {1.0f, 0.5f, 0.0f}};
+struct Planet uranus = {1.3, 60.0, 0.0, 0.0001, {0.0f, 0.0f, 1.0f}};
+struct Planet neptunus = {1.3, 70.0, 0.0, 0.00008, {0.0f, 0.0f, 1.0f}};
 
-float rotationAngleMerkurius = 0.0;
-float rotationAngleVenus = 0.0;
-float rotationAngleBumi = 0.0;
-float rotationAngleMars = 0.0;
-float rotationAngleJupiter = 0.0;
-float rotationAngleSaturnus = 0.0;
-float rotationAngleUranus = 0.0;
-float rotationAngleNeptunus = 0.0;
-
-float kecepatanRotasiMerkurius = 0.002;
-float kecepatanRotasiVenus = 0.001;
-float kecepatanRotasiBumi = 0.0005;
-float kecepatanRotasiMars = 0.0004;
-float kecepatanRotasiJupiter = 0.0003;
-float kecepatanRotasiSaturnus = 0.0002;
-float kecepatanRotasiUranus = 0.0001;
-float kecepatanRotasiNeptunus = 0.00008;
-
-float mercuryColor[3] = {0.6f, 0.6f, 0.6f}; 
-float venusColor[3] = {0.8f, 0.6f, 0.2f}; 
-float earthColor[3] = {0.2f, 0.6f, 1.0f}; 
-float marsColor[3] = {1.0f, 0.0f, 0.0f}; 
-float jupiterColor[3] = {1.0f, 1.0f, 0.0f}; 
-float saturnColor[3] = {1.0f, 0.5f, 0.0f}; 
-float uranusColor[3] = {0.0f, 0.0f, 1.0f}; 
-float neptuneColor[3] = {0.0f, 0.0f, 1.0f}; 
-
-// GLfloat light_position[] = {0.0, 150.0, 0.0, 1.0};
 GLfloat light_position1[] = {10.0, 0.0, 0.0, 1.0};
 GLfloat light_position2[] = {-10.0, 0.0, 0.0, 1.0};
 GLfloat light_position3[] = {0.0, 0.0, 10.0, 1.0};
@@ -90,7 +59,7 @@ void reshape(int w, int h)
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(45.0, aspect, 1.0, 300.0); // Slightly reduce far plane for better zooming
+	gluPerspective(45.0, aspect, 1.0, 300.0);
 	gluLookAt(xLookAt, yLookAt, zLookAt, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 	// gluLookAt(-20.0, 60.0, 55.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 	// gluLookAt(-20.0, 20.0, 50.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
@@ -138,12 +107,12 @@ void drawOrbit(float jarakPlanet)
 	if (!showOrbit)
 		return; // Jika orbit tidak ditampilkan, keluar dari fungsi
 	glPushMatrix();
-	glColor3f(1.0f, 1.0f, 1.0f); // Warna putih untuk lintasan orbit
+	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_LINE_LOOP);
-	int numSegments = 100; // Jumlah segmen untuk membentuk lingkaran
+	int numSegments = 100;
 	for (int i = 0; i < numSegments; i++)
 	{
-		float angle = 2.0f * PI * float(i) / float(numSegments); // Sudut dalam radian
+		float angle = 2.0f * PI * float(i) / float(numSegments);
 		float x = jarakPlanet * cos(angle);
 		float z = jarakPlanet * sin(angle);
 		glVertex3f(x, 0.0f, z);
@@ -158,7 +127,7 @@ void matahari()
 	glColor3ub(212, 246, 255);
 	glRotatef(rotation += 0.01, 0, 1, 0);
 	glRotatef(90, 1.0, 0.0, 0.0);
-	glutSolidSphere(radiusMatahari, 30, 30);
+	glutSolidSphere(8.0, 30, 30);
 	glPopMatrix();
 }
 
@@ -181,11 +150,11 @@ void display()
 	glLoadIdentity();
 
 	// Atur posisi dan properti lampu
-	glEnable(GL_LIGHTING); // Aktifkan pencahayaan
-	glEnable(GL_LIGHT0);   // Aktifkan lampu 0
-	glEnable(GL_LIGHT1);   // Aktifkan lampu 1
-	glEnable(GL_LIGHT2);   // Aktifkan lampu 2
-	glEnable(GL_LIGHT3);   // Aktifkan lampu 3
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHT2);
+	glEnable(GL_LIGHT3);
 
 	// Lampu 0
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position1);
@@ -215,41 +184,41 @@ void display()
 	matahari();
 
 	// Orbit dan planet
-	drawOrbit(jarakPlanetMerkurius);
-	createPlanet(rotationAngleMerkurius, jarakPlanetMerkurius, radiusMerkurius, mercuryColor);
+	drawOrbit(merkurius.jarak);
+	createPlanet(merkurius.rotationAngle, merkurius.jarak, merkurius.radius, merkurius.color);
 
-	drawOrbit(jarakPlanetVenus);
-	createPlanet(rotationAngleVenus, jarakPlanetVenus, radiusVenus, venusColor);
+	drawOrbit(venus.jarak);
+	createPlanet(venus.rotationAngle, venus.jarak, venus.radius, venus.color);
 
-	drawOrbit(jarakPlanetBumi);
-	createPlanet(rotationAngleBumi, jarakPlanetBumi, radiusBumi, earthColor);
+	drawOrbit(bumi.jarak);
+	createPlanet(bumi.rotationAngle, bumi.jarak, bumi.radius, bumi.color);
 
-	drawOrbit(jarakPlanetMars);
-	createPlanet(rotationAngleMars, jarakPlanetMars, radiusMars, marsColor);
+	drawOrbit(mars.jarak);
+	createPlanet(mars.rotationAngle, mars.jarak, mars.radius, mars.color);
 
-	drawOrbit(jarakPlanetJupiter);
-	createPlanet(rotationAngleJupiter, jarakPlanetJupiter, radiusJupiter, jupiterColor);
+	drawOrbit(jupiter.jarak);
+	createPlanet(jupiter.rotationAngle, jupiter.jarak, jupiter.radius, jupiter.color);
 
-	drawOrbit(jarakPlanetSaturnus);
-	createPlanet(rotationAngleSaturnus, jarakPlanetSaturnus, radiusSaturnus, saturnColor);
+	drawOrbit(saturnus.jarak);
+	createPlanet(saturnus.rotationAngle, saturnus.jarak, saturnus.radius, saturnus.color);
 
-	drawOrbit(jarakPlanetUranus);
-	createPlanet(rotationAngleUranus, jarakPlanetUranus, radiusUranus, uranusColor);
+	drawOrbit(uranus.jarak);
+	createPlanet(uranus.rotationAngle, uranus.jarak, uranus.radius, uranus.color);
 
-	drawOrbit(jarakPlanetNeptunus);
-	createPlanet(rotationAngleNeptunus, jarakPlanetNeptunus, radiusNeptunus, neptuneColor);
+	drawOrbit(neptunus.jarak);
+	createPlanet(neptunus.rotationAngle, neptunus.jarak, neptunus.radius, neptunus.color);
 
 	glutSwapBuffers();
 	glutPostRedisplay();
 
-	rotationAngleMerkurius += kecepatanRotasiMerkurius;
-	rotationAngleVenus += kecepatanRotasiVenus;
-	rotationAngleBumi += kecepatanRotasiBumi;
-	rotationAngleMars += kecepatanRotasiMars;
-	rotationAngleJupiter += kecepatanRotasiJupiter;
-	rotationAngleSaturnus += kecepatanRotasiSaturnus;
-	rotationAngleUranus += kecepatanRotasiUranus;
-	rotationAngleNeptunus += kecepatanRotasiNeptunus;
+	merkurius.rotationAngle += merkurius.kecepatanRotasi;
+	venus.rotationAngle += venus.kecepatanRotasi;
+	bumi.rotationAngle += bumi.kecepatanRotasi;
+	mars.rotationAngle += mars.kecepatanRotasi;
+	jupiter.rotationAngle += jupiter.kecepatanRotasi;
+	saturnus.rotationAngle += saturnus.kecepatanRotasi;
+	uranus.rotationAngle += uranus.kecepatanRotasi;
+	neptunus.rotationAngle += neptunus.kecepatanRotasi;
 }
 
 void inisialisasi()
