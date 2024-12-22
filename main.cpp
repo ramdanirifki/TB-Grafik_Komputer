@@ -23,31 +23,24 @@ struct Planet jupiter = {2.3, 40.0, 0.0, 0.0003, {1.0f, 1.0f, 0.0f}};
 struct Planet saturnus = {2.1, 50.0, 0.0, 0.0002, {1.0f, 0.5f, 0.0f}};
 struct Planet uranus = {1.3, 60.0, 0.0, 0.0001, {0.0f, 0.0f, 1.0f}};
 struct Planet neptunus = {1.3, 70.0, 0.0, 0.00008, {0.0f, 0.0f, 1.0f}};
+struct Planet bulan = {0.3, 2.0, 0.0, 0.001, {0.8f, 0.8f, 0.8f}};
 
-GLfloat light_position1[] = {10.0, 0.0, 0.0, 1.0};
-GLfloat light_position2[] = {-10.0, 0.0, 0.0, 1.0};
-GLfloat light_position3[] = {0.0, 0.0, 10.0, 1.0};
-GLfloat light_position4[] = {10.0, 0.0, -10.0, 1.0};
+struct Light
+{
+	GLfloat position[4];
+	GLfloat ambient[4];
+	GLfloat diffuse[4];
+	GLfloat specular[4];
+};
 
-GLfloat light_ambient1[] = {0.1, 0.1, 0.1, 1.0};
-GLfloat light_diffuse1[] = {1.0, 1.0, 1.0, 1.0};
-GLfloat light_specular1[] = {1.0, 1.0, 1.0, 1.0};
-
-GLfloat light_ambient2[] = {0.1, 0.1, 0.1, 1.0};
-GLfloat light_diffuse2[] = {1.0, 1.0, 1.0, 1.0};
-GLfloat light_specular2[] = {1.0, 1.0, 1.0, 1.0};
-
-GLfloat light_ambient3[] = {0.1, 0.1, 0.1, 1.0};
-GLfloat light_diffuse3[] = {1.0, 1.0, 1.0, 1.0};
-GLfloat light_specular3[] = {1.0, 1.0, 1.0, 1.0};
-
-GLfloat light_ambient4[] = {0.1, 0.1, 0.1, 1.0};
-GLfloat light_diffuse4[] = {1.0, 1.0, 1.0, 1.0};
-GLfloat light_specular4[] = {1.0, 1.0, 1.0, 1.0};
+struct Light light1 = {{10.0, 0.0, 0.0, 1.0}, {0.1, 0.1, 0.1, 1.0}, {1.0, 1.0, 1.0, 1.0}, {1.0, 1.0, 1.0, 1.0}};
+struct Light light2 = {{-10.0, 0.0, 0.0, 1.0}, {0.1, 0.1, 0.1, 1.0}, {1.0, 1.0, 1.0, 1.0}, {1.0, 1.0, 1.0, 1.0}};
+struct Light light3 = {{0.0, 0.0, 10.0, 1.0}, {0.1, 0.1, 0.1, 1.0}, {1.0, 1.0, 1.0, 1.0}, {1.0, 1.0, 1.0, 1.0}};
+struct Light light4 = {{0.0, 0.0, -10.0, 1.0}, {0.1, 0.1, 0.1, 1.0}, {1.0, 1.0, 1.0, 1.0}, {1.0, 1.0, 1.0, 1.0}};
 
 float xLookAt = -20.0;
 float yLookAt = 30.0;
-float zLookAt = 100.0;
+float zLookAt = 115.0;
 
 void reshape(int w, int h)
 {
@@ -81,24 +74,30 @@ void keyboard(unsigned char key, int x, int y)
 	case 'W':
 		exit(0);
 		break;
-		//		case '1':
-		//            float xLookAt = -20.0;
-		//			float yLookAt = 60.0;
-		//			float zLookAt = 100.0;
-		//			glutPostRedisplay();
-		//			break;
-		//		case '2':
-		//            float xLookAt = -20.0;
-		//			float yLookAt = 60.0;
-		//			float zLookAt = 50.0;
-		//			glutPostRedisplay();
-		//			break;
-		//		case '3':
-		//            float xLookAt = -20.0;
-		//			float yLookAt = 20.0;
-		//			float zLookAt = 50.0;
-		//			glutPostRedisplay();
-		//			break;
+	case '1':
+		xLookAt = -20.0;
+		yLookAt = 30.0;
+		zLookAt = 115.0;
+		reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+		break;
+	case '2':
+		xLookAt = -20.0;
+		yLookAt = 30.0;
+		zLookAt = 90.0;
+		reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+		break;
+	case '3':
+		xLookAt = -10.0;
+		yLookAt = 60.0;
+		zLookAt = 70.0;
+		reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+		break;
+	case '4':
+		xLookAt = -20.0;
+		yLookAt = 10.0;
+		zLookAt = 50.0;
+		reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+		break;
 	}
 }
 
@@ -121,7 +120,37 @@ void drawOrbit(float jarakPlanet)
 	glPopMatrix();
 }
 
-void matahari()
+void drawRing(float innerRadius, float outerRadius, int numOrbits)
+{
+	glPushMatrix();
+	glColor3f(0.8f, 0.8f, 0.5f); // Warna cincin
+
+	// Interval antar orbit
+	float radiusStep = (outerRadius - innerRadius) / numOrbits;
+
+	// Menggambar banyak orbit
+	for (int orbit = 0; orbit < numOrbits; orbit++)
+	{
+		float currentRadius = innerRadius + orbit * radiusStep;
+		glBegin(GL_LINE_LOOP);
+
+		int numSegments = 100; // Jumlah segmen untuk membuat orbit halus
+		for (int i = 0; i <= numSegments; i++)
+		{
+			float angle = 2.0f * PI * float(i) / float(numSegments);
+			float x = currentRadius * cos(angle);
+			float z = currentRadius * sin(angle);
+
+			glVertex3f(x, 0.0f, z); // Titik pada orbit
+		}
+
+		glEnd();
+	}
+
+	glPopMatrix();
+}
+
+void createMatahari()
 {
 	glPushMatrix();
 	glColor3ub(212, 246, 255);
@@ -144,6 +173,35 @@ void createPlanet(float rotationAnglePlanet, float jarakPlanet, float radiusPlan
 	glPopMatrix();
 }
 
+void createBumi()
+{
+	float angle = (14 * (360.0f / object) * (PI / 180.0f)) + bumi.rotationAngle;
+	float x = bumi.jarak * cos(angle);
+	float z = bumi.jarak * sin(angle);
+
+	glPushMatrix();
+	glTranslatef(x, 0.0f, z);
+	glColor3f(bumi.color[0], bumi.color[1], bumi.color[2]);
+	glutSolidSphere(bumi.radius, 30, 30);
+	drawOrbit(bulan.jarak);
+	createPlanet(bulan.rotationAngle, bulan.jarak, bulan.radius, bulan.color);
+	glPopMatrix();
+}
+
+void createSaturnus()
+{
+	float angle = (14 * (360.0f / object) * (PI / 180.0f)) + saturnus.rotationAngle;
+	float x = saturnus.jarak * cos(angle);
+	float z = saturnus.jarak * sin(angle);
+
+	glPushMatrix();
+	glTranslatef(x, 0.0f, z);
+	glColor3f(saturnus.color[0], saturnus.color[1], saturnus.color[2]);
+	glutSolidSphere(saturnus.radius, 30, 30);
+	drawRing(3.0, 5.0, 100.0);
+	glPopMatrix();
+}
+
 void display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -157,31 +215,31 @@ void display()
 	glEnable(GL_LIGHT3);
 
 	// Lampu 0
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position1);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient1);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse1);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular1);
+	glLightfv(GL_LIGHT0, GL_POSITION, light1.position);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light1.ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light1.diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light1.specular);
 
 	// Lampu 1
-	glLightfv(GL_LIGHT1, GL_POSITION, light_position2);
-	glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient2);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse2);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, light_specular2);
+	glLightfv(GL_LIGHT1, GL_POSITION, light2.position);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, light2.ambient);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, light2.diffuse);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, light2.specular);
 
 	// Lampu 2
-	glLightfv(GL_LIGHT2, GL_POSITION, light_position3);
-	glLightfv(GL_LIGHT2, GL_AMBIENT, light_ambient3);
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, light_diffuse3);
-	glLightfv(GL_LIGHT2, GL_SPECULAR, light_specular3);
+	glLightfv(GL_LIGHT2, GL_POSITION, light3.position);
+	glLightfv(GL_LIGHT2, GL_AMBIENT, light3.ambient);
+	glLightfv(GL_LIGHT2, GL_DIFFUSE, light3.diffuse);
+	glLightfv(GL_LIGHT2, GL_SPECULAR, light3.diffuse);
 
 	// Lampu 3
-	glLightfv(GL_LIGHT3, GL_POSITION, light_position4);
-	glLightfv(GL_LIGHT3, GL_AMBIENT, light_ambient4);
-	glLightfv(GL_LIGHT3, GL_DIFFUSE, light_diffuse4);
-	glLightfv(GL_LIGHT3, GL_SPECULAR, light_specular4);
+	glLightfv(GL_LIGHT3, GL_POSITION, light4.position);
+	glLightfv(GL_LIGHT3, GL_AMBIENT, light4.ambient);
+	glLightfv(GL_LIGHT3, GL_DIFFUSE, light4.diffuse);
+	glLightfv(GL_LIGHT3, GL_SPECULAR, light4.specular);
 
 	// Gambar Matahari
-	matahari();
+	createMatahari();
 
 	// Orbit dan planet
 	drawOrbit(merkurius.jarak);
@@ -191,7 +249,7 @@ void display()
 	createPlanet(venus.rotationAngle, venus.jarak, venus.radius, venus.color);
 
 	drawOrbit(bumi.jarak);
-	createPlanet(bumi.rotationAngle, bumi.jarak, bumi.radius, bumi.color);
+	createBumi();
 
 	drawOrbit(mars.jarak);
 	createPlanet(mars.rotationAngle, mars.jarak, mars.radius, mars.color);
@@ -200,7 +258,7 @@ void display()
 	createPlanet(jupiter.rotationAngle, jupiter.jarak, jupiter.radius, jupiter.color);
 
 	drawOrbit(saturnus.jarak);
-	createPlanet(saturnus.rotationAngle, saturnus.jarak, saturnus.radius, saturnus.color);
+	createSaturnus();
 
 	drawOrbit(uranus.jarak);
 	createPlanet(uranus.rotationAngle, uranus.jarak, uranus.radius, uranus.color);
