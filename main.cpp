@@ -3,27 +3,29 @@
 
 float object = 10.0;
 float PI = 3.146;
-float rotation = 0.0;
+float rotationAngleMatahari = 0.0;
 float aspect;
 
 struct Planet
 {
 	float radius;
 	float jarak;
+	float revolusiAngle;
 	float rotationAngle;
+	float kecepatanRevolusi;
 	float kecepatanRotasi;
 	float color[3];
 };
 
-struct Planet merkurius = {0.5, 10.0, 0.0, 0.002, {0.6f, 0.6f, 0.6f}};
-struct Planet venus = {0.8, 15.0, 0.0, 0.001, {0.8f, 0.6f, 0.2f}};
-struct Planet bumi = {0.9, 25.0, 0.0, 0.0005, {0.2f, 0.6f, 1.0f}};
-struct Planet mars = {0.47, 30.0, 0.0, 0.0004, {1.0f, 0.0f, 0.0f}};
-struct Planet jupiter = {2.3, 40.0, 0.0, 0.0003, {1.0f, 1.0f, 0.0f}};
-struct Planet saturnus = {2.1, 50.0, 0.0, 0.0002, {1.0f, 0.5f, 0.0f}};
-struct Planet uranus = {1.3, 60.0, 0.0, 0.0001, {0.0f, 0.0f, 1.0f}};
-struct Planet neptunus = {1.3, 70.0, 0.0, 0.00008, {0.0f, 0.0f, 1.0f}};
-struct Planet bulan = {0.3, 2.0, 0.0, 0.001, {0.8f, 0.8f, 0.8f}};
+struct Planet merkurius = {0.5, 10.0, 0.0, 0.0, 0.002, 0.0614, {0.6f, 0.6f, 0.6f}};
+struct Planet venus = {0.8, 15.0, 0.0, 0.0, 0.001, 0.0148, {0.8f, 0.6f, 0.2f}};
+struct Planet bumi = {0.9, 25.0, 0.0, 0.0, 0.0005, 3.6, {0.2f, 0.6f, 1.0f}};
+struct Planet mars = {0.47, 30.0, 0.0, 0.0, 0.0004, 3.4951, {1.0f, 0.0f, 0.0f}};
+struct Planet jupiter = {2.3, 40.0, 0.0, 0.0, 0.0003, 8.7805, {1.0f, 1.0f, 0.0f}};
+struct Planet saturnus = {2.1, 50.0, 0.0, 0.0, 0.0002, 8.0, {1.0f, 0.5f, 0.0f}};
+struct Planet uranus = {1.3, 60.0, 0.0, 0.0, 0.0001, 5.0, {0.0f, 0.0f, 1.0f}};
+struct Planet neptunus = {1.3, 70.0, 0.0, 0.0, 0.00008, 5.3731, {0.0f, 0.0f, 1.0f}};
+struct Planet bulan = {0.3, 2.0, 0.0, 0.0, 0.001, 0.1319, {0.8f, 0.8f, 0.8f}};
 
 struct Light
 {
@@ -54,10 +56,29 @@ void reshape(int w, int h)
 	glLoadIdentity();
 	gluPerspective(45.0, aspect, 1.0, 300.0);
 	gluLookAt(xLookAt, yLookAt, zLookAt, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	// gluLookAt(-20.0, 60.0, 55.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	// gluLookAt(-20.0, 20.0, 50.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+}
+
+bool hiddenCartecius = true;
+
+void drawCartecius()
+{
+	glColor3f(1.0, 1.0, 1.0);
+	glBegin(GL_LINES);
+
+	// Sumbu X
+	glVertex3f(-200.0, 0.0, 0.0);
+	glVertex3f(200.0, 0.0, 0.0);
+
+	// Sumbu Y
+	glVertex3f(0.0, -200.0, 0.0);
+	glVertex3f(0.0, 200.0, 0.0);
+
+	// Sumbu Z
+	glVertex3f(0.0, 0.0, -200.0);
+	glVertex3f(0.0, 0.0, 200.0);
+	glEnd();
 }
 
 bool showOrbit = true;
@@ -66,9 +87,13 @@ void keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-	case 'q':
-	case 'Q':
+	case 'e':
+	case 'E':
 		showOrbit = !showOrbit;
+		break;
+	case 'r':
+	case 'R':
+		hiddenCartecius = !hiddenCartecius;
 		break;
 	case 'w':
 	case 'W':
@@ -82,7 +107,7 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case '2':
 		xLookAt = -20.0;
-		yLookAt = 30.0;
+		yLookAt = 10.0;
 		zLookAt = 90.0;
 		reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 		break;
@@ -120,6 +145,64 @@ void drawOrbit(float jarakPlanet)
 	glPopMatrix();
 }
 
+void createPlanet(struct Planet *planet)
+{
+	float angle = (14 * (360.0f / object) * (PI / 180.0f)) + planet->revolusiAngle;
+	float x = planet->jarak * cos(angle);
+	float z = planet->jarak * sin(angle);
+
+	glPushMatrix();
+	glTranslatef(x, 0.0f, z);
+	glRotatef(planet->rotationAngle += planet->kecepatanRotasi, 0, 1, 0); // Perbarui sudut rotasi
+	glColor3f(planet->color[0], planet->color[1], planet->color[2]);
+	glutWireSphere(planet->radius, 30, 30);
+	glPopMatrix();
+}
+
+void createMatahari()
+{
+	glPushMatrix();
+	glColor3ub(212, 246, 255);
+	glRotatef(rotationAngleMatahari += 0.01, 0, 1, 0);
+	glRotatef(90, 1.0, 0.0, 0.0);
+	glutWireSphere(8.0, 30, 30);
+	glPopMatrix();
+}
+
+void createBumi()
+{
+	float angle = (14 * (360.0f / object) * (PI / 180.0f)) + bumi.revolusiAngle;
+	float x = bumi.jarak * cos(angle);
+	float z = bumi.jarak * sin(angle);
+
+	glPushMatrix();
+	glTranslatef(x, 0.0f, z);
+
+	glPushMatrix();
+	glRotatef(bumi.rotationAngle += bumi.kecepatanRotasi, 0, 1, 0);
+	glColor3f(bumi.color[0], bumi.color[1], bumi.color[2]);
+	glutWireSphere(bumi.radius, 30, 30);
+	glPopMatrix();
+
+	drawOrbit(bulan.jarak);
+
+	float moonAngle = bulan.revolusiAngle * (PI / 180.0f);
+	float moonX = bulan.jarak * cos(moonAngle);
+	float moonZ = bulan.jarak * sin(moonAngle);
+
+	// Gambar bulan
+	glPushMatrix();
+	glTranslatef(moonX, 0.0f, moonZ);
+	glColor3f(bulan.color[0], bulan.color[1], bulan.color[2]);
+	glutWireSphere(bulan.radius, 30, 30);
+	glPopMatrix();
+
+	glPopMatrix();
+
+	// Perbarui sudut rotasi bulan
+	bulan.revolusiAngle += bulan.kecepatanRevolusi * 360.0f;
+}
+
 void drawRing(float innerRadius, float outerRadius, int numOrbits)
 {
 	glPushMatrix();
@@ -150,54 +233,21 @@ void drawRing(float innerRadius, float outerRadius, int numOrbits)
 	glPopMatrix();
 }
 
-void createMatahari()
-{
-	glPushMatrix();
-	glColor3ub(212, 246, 255);
-	glRotatef(rotation += 0.01, 0, 1, 0);
-	glRotatef(90, 1.0, 0.0, 0.0);
-	glutSolidSphere(8.0, 30, 30);
-	glPopMatrix();
-}
-
-void createPlanet(float rotationAnglePlanet, float jarakPlanet, float radiusPlanet, float color[3])
-{
-	float angle = (14 * (360.0f / object) * (PI / 180.0f)) + rotationAnglePlanet;
-	float x = jarakPlanet * cos(angle);
-	float z = jarakPlanet * sin(angle);
-
-	glPushMatrix();
-	glTranslatef(x, 0.0f, z);
-	glColor3f(color[0], color[1], color[2]);
-	glutSolidSphere(radiusPlanet, 30, 30);
-	glPopMatrix();
-}
-
-void createBumi()
-{
-	float angle = (14 * (360.0f / object) * (PI / 180.0f)) + bumi.rotationAngle;
-	float x = bumi.jarak * cos(angle);
-	float z = bumi.jarak * sin(angle);
-
-	glPushMatrix();
-	glTranslatef(x, 0.0f, z);
-	glColor3f(bumi.color[0], bumi.color[1], bumi.color[2]);
-	glutSolidSphere(bumi.radius, 30, 30);
-	drawOrbit(bulan.jarak);
-	createPlanet(bulan.rotationAngle, bulan.jarak, bulan.radius, bulan.color);
-	glPopMatrix();
-}
-
 void createSaturnus()
 {
-	float angle = (14 * (360.0f / object) * (PI / 180.0f)) + saturnus.rotationAngle;
+	float angle = (14 * (360.0f / object) * (PI / 180.0f)) + saturnus.revolusiAngle;
 	float x = saturnus.jarak * cos(angle);
 	float z = saturnus.jarak * sin(angle);
 
 	glPushMatrix();
 	glTranslatef(x, 0.0f, z);
+
+	glPushMatrix();
+	glRotatef(saturnus.rotationAngle += saturnus.kecepatanRotasi, 0, 1, 0);
 	glColor3f(saturnus.color[0], saturnus.color[1], saturnus.color[2]);
-	glutSolidSphere(saturnus.radius, 30, 30);
+	glutWireSphere(saturnus.radius, 30, 30);
+	glPopMatrix();
+
 	drawRing(3.0, 5.0, 100.0);
 	glPopMatrix();
 }
@@ -239,44 +289,52 @@ void display()
 	glLightfv(GL_LIGHT3, GL_SPECULAR, light4.specular);
 
 	// Gambar Matahari
+	glPushMatrix();
 	createMatahari();
 
 	// Orbit dan planet
 	drawOrbit(merkurius.jarak);
-	createPlanet(merkurius.rotationAngle, merkurius.jarak, merkurius.radius, merkurius.color);
+	createPlanet(&merkurius);
 
 	drawOrbit(venus.jarak);
-	createPlanet(venus.rotationAngle, venus.jarak, venus.radius, venus.color);
+	createPlanet(&venus);
 
 	drawOrbit(bumi.jarak);
 	createBumi();
 
 	drawOrbit(mars.jarak);
-	createPlanet(mars.rotationAngle, mars.jarak, mars.radius, mars.color);
+	createPlanet(&mars);
 
 	drawOrbit(jupiter.jarak);
-	createPlanet(jupiter.rotationAngle, jupiter.jarak, jupiter.radius, jupiter.color);
+	createPlanet(&jupiter);
 
 	drawOrbit(saturnus.jarak);
 	createSaturnus();
 
 	drawOrbit(uranus.jarak);
-	createPlanet(uranus.rotationAngle, uranus.jarak, uranus.radius, uranus.color);
+	createPlanet(&uranus);
 
 	drawOrbit(neptunus.jarak);
-	createPlanet(neptunus.rotationAngle, neptunus.jarak, neptunus.radius, neptunus.color);
+	createPlanet(&neptunus);
+
+	if (hiddenCartecius)
+	{
+		drawCartecius();
+	}
+
+	glPopMatrix();
 
 	glutSwapBuffers();
 	glutPostRedisplay();
 
-	merkurius.rotationAngle += merkurius.kecepatanRotasi;
-	venus.rotationAngle += venus.kecepatanRotasi;
-	bumi.rotationAngle += bumi.kecepatanRotasi;
-	mars.rotationAngle += mars.kecepatanRotasi;
-	jupiter.rotationAngle += jupiter.kecepatanRotasi;
-	saturnus.rotationAngle += saturnus.kecepatanRotasi;
-	uranus.rotationAngle += uranus.kecepatanRotasi;
-	neptunus.rotationAngle += neptunus.kecepatanRotasi;
+	merkurius.revolusiAngle += merkurius.kecepatanRevolusi;
+	venus.revolusiAngle += venus.kecepatanRevolusi;
+	bumi.revolusiAngle += bumi.kecepatanRevolusi;
+	mars.revolusiAngle += mars.kecepatanRevolusi;
+	jupiter.revolusiAngle += jupiter.kecepatanRevolusi;
+	saturnus.revolusiAngle += saturnus.kecepatanRevolusi;
+	uranus.revolusiAngle += uranus.kecepatanRevolusi;
+	neptunus.revolusiAngle += neptunus.kecepatanRevolusi;
 }
 
 void inisialisasi()
