@@ -1,10 +1,24 @@
-#include <GL/glut.h>
-#include <math.h>
+#include <GL/glew.h>	 
+#include <GL/glut.h>	 
+#include <FreeImage.h> 
+#include <stdio.h>		 
+#include <math.h>			 
 
 float object = 10.0;
 float PI = 3.146;
 float rotationAngleMatahari = 0.0;
 float aspect;
+
+GLuint texture_Matahari_ID;
+GLuint texture_Merkurius_ID;
+GLuint texture_Venus_ID;
+GLuint texture_Bumi_ID;
+GLuint texture_Mars_ID;
+GLuint texture_Jupiter_ID;
+GLuint texture_Saturnus_ID;
+GLuint texture_Uranus_ID;
+GLuint texture_Neptunus_ID;
+GLuint texture_Bulan_ID;
 
 struct Planet
 {
@@ -14,18 +28,17 @@ struct Planet
 	float rotationAngle;
 	float kecepatanRevolusi;
 	float kecepatanRotasi;
-	float color[3];
 };
 
-struct Planet merkurius = {0.5, 10.0, 0.0, 0.0, 0.002, 0.0614, {0.6f, 0.6f, 0.6f}};
-struct Planet venus = {0.8, 15.0, 0.0, 0.0, 0.001, 0.0148, {0.8f, 0.6f, 0.2f}};
-struct Planet bumi = {0.9, 25.0, 0.0, 0.0, 0.0005, 3.6, {0.2f, 0.6f, 1.0f}};
-struct Planet mars = {0.47, 30.0, 0.0, 0.0, 0.0004, 3.4951, {1.0f, 0.0f, 0.0f}};
-struct Planet jupiter = {2.3, 40.0, 0.0, 0.0, 0.0003, 8.7805, {1.0f, 1.0f, 0.0f}};
-struct Planet saturnus = {2.1, 50.0, 0.0, 0.0, 0.0002, 8.0, {1.0f, 0.5f, 0.0f}};
-struct Planet uranus = {1.3, 60.0, 0.0, 0.0, 0.0001, 5.0, {0.0f, 0.0f, 1.0f}};
-struct Planet neptunus = {1.3, 70.0, 0.0, 0.0, 0.00008, 5.3731, {0.0f, 0.0f, 1.0f}};
-struct Planet bulan = {0.3, 2.0, 0.0, 0.0, 0.001, 0.1319, {0.8f, 0.8f, 0.8f}};
+struct Planet merkurius = {0.5, 10.0, 0.0, 0.0, 0.002, 0.307}; 
+struct Planet venus = {0.8, 15.0, 0.0, 0.0, 0.001, 0.55}; 
+struct Planet bumi = {0.9, 25.0, 0.0, 0.0, 0.0005, 1.8}; 
+struct Planet mars = {0.47, 30.0, 0.0, 0.0, 0.0004, 1.74755}; 
+struct Planet jupiter = {2.3, 40.0, 0.0, 0.0, 0.0003, 4.39025}; 
+struct Planet saturnus = {2.1, 50.0, 0.0, 0.0, 0.0002, 4.0}; 
+struct Planet uranus = {1.3, 60.0, 0.0, 0.0, 0.0001, 2.5}; 
+struct Planet neptunus = {1.3, 70.0, 0.0, 0.0, 0.00008, 2.68655}; 
+struct Planet bulan = {0.3, 2.0, 0.0, 0.0, 0.001, 0.0659}; 
 
 struct Light
 {
@@ -126,6 +139,33 @@ void keyboard(unsigned char key, int x, int y)
 	}
 }
 
+GLuint loadTexture(const char *path)
+{
+	FIBITMAP *bitmap = FreeImage_Load(FIF_JPEG, path);
+	if (!bitmap)
+	{
+		printf("Failed to load image %s\n", path);
+		return 0;
+	}
+
+	FIBITMAP *bitmap32 = FreeImage_ConvertTo32Bits(bitmap);
+	FreeImage_Unload(bitmap);
+
+	BYTE *imgData = FreeImage_GetBits(bitmap32);
+	int imgWidth = FreeImage_GetWidth(bitmap32);
+	int imgHeight = FreeImage_GetHeight(bitmap32);
+
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, imgData);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	FreeImage_Unload(bitmap32);
+	return textureID;
+}
+
 void drawOrbit(float jarakPlanet)
 {
 	if (!showOrbit)
@@ -145,7 +185,7 @@ void drawOrbit(float jarakPlanet)
 	glPopMatrix();
 }
 
-void createPlanet(struct Planet *planet)
+void createPlanet(struct Planet *planet, GLuint textureID)
 {
 	float angle = (14 * (360.0f / object) * (PI / 180.0f)) + planet->revolusiAngle;
 	float x = planet->jarak * cos(angle);
@@ -153,9 +193,21 @@ void createPlanet(struct Planet *planet)
 
 	glPushMatrix();
 	glTranslatef(x, 0.0f, z);
-	glRotatef(planet->rotationAngle += planet->kecepatanRotasi, 0, 1, 0); // Perbarui sudut rotasi
-	glColor3f(planet->color[0], planet->color[1], planet->color[2]);
-	glutWireSphere(planet->radius, 30, 30);
+	glRotatef(planet->rotationAngle += planet->kecepatanRotasi, 0, 1, 0);
+	glRotatef(90, 1.0, 0.0, 0.0);
+	glColor3f(1.0f, 1.0f, 1.0f);
+
+	// Aktifkan tekstur
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	// Gambar bola dengan tekstur
+	GLUquadric *object = gluNewQuadric();
+	gluQuadricTexture(object, GL_TRUE);
+	gluSphere(object, planet->radius, 30, 30);
+	gluDeleteQuadric(object); // Hapus quadric setelah digunakan
+
+	glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
 }
 
@@ -165,7 +217,18 @@ void createMatahari()
 	glColor3ub(212, 246, 255);
 	glRotatef(rotationAngleMatahari += 0.01, 0, 1, 0);
 	glRotatef(90, 1.0, 0.0, 0.0);
-	glutWireSphere(8.0, 30, 30);
+
+	// Aktifkan tekstur
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture_Matahari_ID);
+
+	// Gambar bola dengan tekstur
+	GLUquadric *object = gluNewQuadric();
+	gluQuadricTexture(object, GL_TRUE);
+	gluSphere(object, 8.0, 30, 30);
+	gluDeleteQuadric(object); // Hapus quadric setelah digunakan
+
+	glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
 }
 
@@ -180,8 +243,20 @@ void createBumi()
 
 	glPushMatrix();
 	glRotatef(bumi.rotationAngle += bumi.kecepatanRotasi, 0, 1, 0);
-	glColor3f(bumi.color[0], bumi.color[1], bumi.color[2]);
-	glutWireSphere(bumi.radius, 30, 30);
+	glRotatef(90, 1.0, 0.0, 0.0);
+	glColor3f(1.0f, 1.0f, 1.0f);
+
+	// Aktifkan tekstur
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture_Bumi_ID);
+
+	// Gambar bola dengan tekstur
+	GLUquadric *object = gluNewQuadric();
+	gluQuadricTexture(object, GL_TRUE);
+	gluSphere(object, bumi.radius, 30, 30);
+	gluDeleteQuadric(object); // Hapus quadric setelah digunakan
+
+	glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
 
 	drawOrbit(bulan.jarak);
@@ -193,8 +268,18 @@ void createBumi()
 	// Gambar bulan
 	glPushMatrix();
 	glTranslatef(moonX, 0.0f, moonZ);
-	glColor3f(bulan.color[0], bulan.color[1], bulan.color[2]);
-	glutWireSphere(bulan.radius, 30, 30);
+	glColor3f(1.0f, 1.0f, 1.0f);
+
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture_Bulan_ID);
+
+	// Gambar bola dengan tekstur
+	GLUquadric *objectBulan = gluNewQuadric();
+	gluQuadricTexture(objectBulan, GL_TRUE);
+	gluSphere(objectBulan, bulan.radius, 30, 30);
+	gluDeleteQuadric(objectBulan); // Hapus quadric setelah digunakan
+
+	glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
 
 	glPopMatrix();
@@ -244,8 +329,20 @@ void createSaturnus()
 
 	glPushMatrix();
 	glRotatef(saturnus.rotationAngle += saturnus.kecepatanRotasi, 0, 1, 0);
-	glColor3f(saturnus.color[0], saturnus.color[1], saturnus.color[2]);
-	glutWireSphere(saturnus.radius, 30, 30);
+	glRotatef(90, 1.0, 0.0, 0.0);
+	glColor3f(1.0f, 1.0f, 1.0f);
+
+	// Aktifkan tekstur
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture_Saturnus_ID);
+
+	// Gambar bola dengan tekstur
+	GLUquadric *object = gluNewQuadric();
+	gluQuadricTexture(object, GL_TRUE);
+	gluSphere(object, saturnus.radius, 30, 30);
+	gluDeleteQuadric(object); // Hapus quadric setelah digunakan
+
+	glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
 
 	drawRing(3.0, 5.0, 100.0);
@@ -294,35 +391,34 @@ void display()
 
 	// Orbit dan planet
 	drawOrbit(merkurius.jarak);
-	createPlanet(&merkurius);
+	createPlanet(&merkurius, texture_Merkurius_ID);
 
 	drawOrbit(venus.jarak);
-	createPlanet(&venus);
+	createPlanet(&venus, texture_Venus_ID);
 
 	drawOrbit(bumi.jarak);
 	createBumi();
 
 	drawOrbit(mars.jarak);
-	createPlanet(&mars);
+	createPlanet(&mars, texture_Mars_ID);
 
 	drawOrbit(jupiter.jarak);
-	createPlanet(&jupiter);
+	createPlanet(&jupiter, texture_Jupiter_ID);
 
 	drawOrbit(saturnus.jarak);
 	createSaturnus();
 
 	drawOrbit(uranus.jarak);
-	createPlanet(&uranus);
+	createPlanet(&uranus, texture_Uranus_ID);
 
 	drawOrbit(neptunus.jarak);
-	createPlanet(&neptunus);
-
+	createPlanet(&neptunus, texture_Neptunus_ID);
+	glPopMatrix();
+	
 	if (hiddenCartecius)
 	{
 		drawCartecius();
 	}
-
-	glPopMatrix();
 
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -342,6 +438,18 @@ void inisialisasi()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_COLOR_MATERIAL);
 	glClearColor(0.1, 0.1, 0.1, 1.0);
+
+	// Muat tekstur matahari dan planet
+	texture_Matahari_ID = loadTexture("texture/matahari.jpg");
+	texture_Merkurius_ID = loadTexture("texture/merkurius.jpg");
+	texture_Venus_ID = loadTexture("texture/venus.jpg");
+	texture_Bumi_ID = loadTexture("texture/bumi.jpg");
+	texture_Mars_ID = loadTexture("texture/mars.jpg");
+	texture_Jupiter_ID = loadTexture("texture/jupiter.jpg");
+	texture_Saturnus_ID = loadTexture("texture/saturnus.jpg");
+	texture_Uranus_ID = loadTexture("texture/uranus.jpg");
+	texture_Neptunus_ID = loadTexture("texture/neptunus.jpg");
+	texture_Bulan_ID = loadTexture("texture/bulan.jpg");
 }
 
 int main(int argc, char **argv)
