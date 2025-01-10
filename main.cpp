@@ -1,11 +1,14 @@
-#include <GL/glew.h>	 
-#include <GL/glut.h>	 
-#include <FreeImage.h> 
-#include <stdio.h>		 
-#include <math.h>			 
+#include <GL/glew.h>
+#include <GL/glut.h>
+#include <FreeImage.h>
+#include <stdio.h>
+#include <math.h>
 
 float object = 10.0;
 float PI = 3.146;
+float scaleMatahari = 1.0f;
+const float MAX_SCALE_MATAHARI = 1.1f;
+const float MIN_SCALE_MATAHARI = 0.5f;
 float rotationAngleMatahari = 0.0;
 float aspect;
 
@@ -30,15 +33,15 @@ struct Planet
 	float kecepatanRotasi;
 };
 
-struct Planet merkurius = {0.5, 10.0, 0.0, 0.0, 0.002, 0.307}; 
-struct Planet venus = {0.8, 15.0, 0.0, 0.0, 0.001, 0.55}; 
-struct Planet bumi = {0.9, 25.0, 0.0, 0.0, 0.0005, 1.8}; 
-struct Planet mars = {0.47, 30.0, 0.0, 0.0, 0.0004, 1.74755}; 
-struct Planet jupiter = {2.3, 40.0, 0.0, 0.0, 0.0003, 4.39025}; 
-struct Planet saturnus = {2.1, 50.0, 0.0, 0.0, 0.0002, 4.0}; 
-struct Planet uranus = {1.3, 60.0, 0.0, 0.0, 0.0001, 2.5}; 
-struct Planet neptunus = {1.3, 70.0, 0.0, 0.0, 0.00008, 2.68655}; 
-struct Planet bulan = {0.3, 2.0, 0.0, 0.0, 0.001, 0.0659}; 
+struct Planet merkurius = {0.5, 10.0, 0.0, 0.0, 0.002, 0.307};
+struct Planet venus = {0.8, 15.0, 0.0, 0.0, 0.001, 0.55};
+struct Planet bumi = {0.9, 25.0, 0.0, 0.0, 0.0005, 1.8};
+struct Planet mars = {0.47, 30.0, 0.0, 0.0, 0.0004, 1.74755};
+struct Planet jupiter = {2.3, 40.0, 0.0, 0.0, 0.0003, 4.39025};
+struct Planet saturnus = {2.1, 50.0, 0.0, 0.0, 0.0002, 4.0};
+struct Planet uranus = {1.3, 60.0, 0.0, 0.0, 0.0001, 2.5};
+struct Planet neptunus = {1.3, 70.0, 0.0, 0.0, 0.00008, 2.68655};
+struct Planet bulan = {0.3, 2.0, 0.0, 0.0, 0.001, 0.0659};
 
 struct Light
 {
@@ -111,6 +114,16 @@ void keyboard(unsigned char key, int x, int y)
 	case 'w':
 	case 'W':
 		exit(0);
+		break;
+	case 't':
+		scaleMatahari += 0.1f;
+		if (scaleMatahari > MAX_SCALE_MATAHARI) 
+			scaleMatahari = MAX_SCALE_MATAHARI;		
+		break;
+	case 'y':
+		scaleMatahari -= 0.1f;
+		if (scaleMatahari < MIN_SCALE_MATAHARI)
+			scaleMatahari = MIN_SCALE_MATAHARI; 
 		break;
 	case '1':
 		xLookAt = -20.0;
@@ -217,6 +230,8 @@ void createMatahari()
 	glColor3ub(212, 246, 255);
 	glRotatef(rotationAngleMatahari += 0.01, 0, 1, 0);
 	glRotatef(90, 1.0, 0.0, 0.0);
+
+	glScalef(scaleMatahari, scaleMatahari, scaleMatahari);
 
 	// Aktifkan tekstur
 	glEnable(GL_TEXTURE_2D);
@@ -414,7 +429,7 @@ void display()
 	drawOrbit(neptunus.jarak);
 	createPlanet(&neptunus, texture_Neptunus_ID);
 	glPopMatrix();
-	
+
 	if (hiddenCartecius)
 	{
 		drawCartecius();
