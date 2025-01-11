@@ -76,8 +76,6 @@ void reshape(int w, int h)
 	glLoadIdentity();
 }
 
-bool hiddenCartecius = true;
-
 void drawCartecius()
 {
 	glColor3f(1.0, 1.0, 1.0);
@@ -98,6 +96,7 @@ void drawCartecius()
 }
 
 bool showOrbit = true;
+bool hiddenCartecius = true;
 
 void keyboard(unsigned char key, int x, int y)
 {
