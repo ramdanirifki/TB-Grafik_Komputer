@@ -298,7 +298,7 @@ void createBumi()
 
 	glPopMatrix();
 
-	// Perbarui sudut rotasi bulan
+	// Perbarui sudut revolusi bulan
 	bulan.revolusiAngle += bulan.kecepatanRevolusi * 360.0f;
 }
 
